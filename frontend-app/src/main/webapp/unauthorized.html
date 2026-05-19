@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied</title>
+    
+    <!-- IBM Carbon Design System CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/carbon-components@10.58.0/css/carbon-components.min.css">
+    
+    <style>
+        body {
+            background-color: #f4f4f4;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        
+        .unauthorized-container {
+            background: #ffffff;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .unauthorized-container p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            color: #161616;
+        }
+    </style>
+</head>
+<body>
+    <div class="unauthorized-container">
+        <p>You are not authorized to access this resource</p>
+        
+        <button class="bx--btn bx--btn--danger bx--btn--lg" type="button" onclick="logout()">
+            Logout
+        </button>
+    </div>
+    
+    <!-- IBM Carbon Design System JavaScript -->
+    <script src="https://unpkg.com/carbon-components@10.58.0/scripts/carbon-components.min.js"></script>
+    
+    <script>
+        function logout() {
+            window.location.href = '/api/auth/logout';
+        }
+    </script>
+</body>
+</html>

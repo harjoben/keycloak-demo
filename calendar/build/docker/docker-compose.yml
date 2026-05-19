@@ -1,0 +1,12 @@
+services:
+
+  calendar:
+    build:
+      context: ../../
+      dockerfile: build/docker/Dockerfile
+    container_name: calendar
+    env_file:
+      - .env
+    ports:
+      - "9080:9080"
+    network_mode: host

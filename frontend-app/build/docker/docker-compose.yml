@@ -1,0 +1,11 @@
+services:
+  frontend-app:
+    build:
+      context: ../../
+      dockerfile: build/docker/Dockerfile
+    container_name: frontend-app
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+    network_mode: host

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar - Frontend App</title>
+    
+    <!-- IBM Carbon Design System CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/carbon-components@10.58.0/css/carbon-components.min.css">
+    
+    <style>
+        body {
+            background-color: #f4f4f4;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .calendar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header-section {
+            background: #ffffff;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .header-title h1 {
+            font-size: 2rem;
+            font-weight: 400;
+            margin: 0;
+            color: #161616;
+        }
+        
+        .header-title .icon {
+            font-size: 2.5rem;
+        }
+        
+        .tiles-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tile {
+            background: #ffffff;
+            padding: 2rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .tile:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tile-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .tile-icon {
+            font-size: 3rem;
+        }
+        
+        .tile-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #161616;
+            margin: 0;
+        }
+        
+        .tile-description {
+            color: #525252;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+        
+        .events-list {
+            background: #ffffff;
+            padding: 2rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+        
+        .events-list.active {
+            display: block;
+        }
+        
+        .events-list h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #161616;
+        }
+        
+        .event-item {
+            border-left: 4px solid #0f62fe;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f4f4f4;
+        }
+        
+        .event-title {
+            font-weight: 600;
+            color: #161616;
+            margin-bottom: 0.5rem;
+        }
+        
+        .event-time {
+            color: #525252;
+            font-size: 0.875rem;
+        }
+        
+        .event-description {
+            color: #525252;
+            margin-top: 0.5rem;
+        }
+        
+        .create-form {
+            background: #ffffff;
+            padding: 2rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+        
+        .create-form.active {
+            display: block;
+        }
+        
+        .create-form h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #161616;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .loading-text {
+            color: #8d8d8d;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .error-message {
+            color: #da1e28;
+            margin-top: 1rem;
+        }
+        
+        .success-message {
+            color: #24a148;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .tiles-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-section {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="header-section">
+            <div class="header-title">
+                <span class="icon">📅</span>
+                <h1>Calendar</h1>
+            </div>
+            <button class="bx--btn bx--btn--danger" type="button" onclick="logout()">
+                <svg class="bx--btn__icon" width="16" height="16" viewBox="0 0 16 16" style="margin-right: 0.5rem;">
+                    <path d="M12 1H4c-.6 0-1 .4-1 1v3h1V2h8v12H4v-3H3v3c0 .6.4 1 1 1h8c.6 0 1-.4 1-1V2c0-.6-.4-1-1-1z"/>
+                    <path d="M7.5 11.5L6.1 10.1 8.2 8 6.1 5.9 7.5 4.5 11 8z"/>
+                    <path d="M2 7h7v1H2z"/>
+                </svg>
+                Logout
+            </button>
+        </div>
+        
+        <div class="tiles-container">
+            <div class="tile" onclick="showViewCalendar()">
+                <div class="tile-header">
+                    <span class="tile-icon">📋</span>
+                    <h2 class="tile-title">View Calendar</h2>
+                </div>
+                <p class="tile-description">
+                    View all your calendar events and appointments. Browse through your schedule and see upcoming events.
+                </p>
+                <button class="bx--btn bx--btn--primary" type="button">
+                    View Events
+                </button>
+            </div>
+            
+            <div class="tile" onclick="showCreateEvent()">
+                <div class="tile-header">
+                    <span class="tile-icon">➕</span>
+                    <h2 class="tile-title">Create Event</h2>
+                </div>
+                <p class="tile-description">
+                    Create a new calendar entry. Add events, meetings, and appointments to your schedule.
+                </p>
+                <button class="bx--btn bx--btn--primary" type="button">
+                    Create New Event
+                </button>
+            </div>
+        </div>
+        
+        <div class="events-list" id="eventsListSection">
+            <h2>Your Calendar Events</h2>
+            <div id="eventsList">
+                <div class="loading-text">Loading events...</div>
+            </div>
+            <button class="bx--btn bx--btn--secondary" type="button" onclick="hideViewCalendar()" style="margin-top: 1rem;">
+                Back to Menu
+            </button>
+        </div>
+        
+        <div class="create-form" id="createFormSection">
+            <h2>Create New Event</h2>
+            <form id="eventForm" onsubmit="submitEventForm(event)">
+                <div class="form-group">
+                    <label class="bx--label" for="eventTitle">Event Title *</label>
+                    <input class="bx--text-input" type="text" id="eventTitle" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="bx--label" for="eventDescription">Description</label>
+                    <textarea class="bx--text-area" id="eventDescription" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="bx--label" for="eventLocation">Location</label>
+                    <input class="bx--text-input" type="text" id="eventLocation" name="location">
+                </div>
+                
+                <div class="form-group">
+                    <label class="bx--label" for="eventStartTime">Start Date & Time *</label>
+                    <input class="bx--text-input" type="datetime-local" id="eventStartTime" name="startTime" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="bx--label" for="eventEndTime">End Date & Time *</label>
+                    <input class="bx--text-input" type="datetime-local" id="eventEndTime" name="endTime" required>
+                </div>
+                
+                <div id="formMessage"></div>
+                
+                <div class="form-actions">
+                    <button class="bx--btn bx--btn--primary" type="submit">
+                        Create Event
+                    </button>
+                    <button class="bx--btn bx--btn--secondary" type="button" onclick="hideCreateEvent()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- IBM Carbon Design System JavaScript -->
+    <script src="https://unpkg.com/carbon-components@10.58.0/scripts/carbon-components.min.js"></script>
+    
+    <script>
+        function showViewCalendar() {
+            document.getElementById('eventsListSection').classList.add('active');
+            document.getElementById('createFormSection').classList.remove('active');
+            loadEvents();
+        }
+        
+        function hideViewCalendar() {
+            document.getElementById('eventsListSection').classList.remove('active');
+        }
+        
+        function showCreateEvent() {
+            document.getElementById('createFormSection').classList.add('active');
+            document.getElementById('eventsListSection').classList.remove('active');
+            document.getElementById('eventForm').reset();
+            document.getElementById('formMessage').innerHTML = '';
+        }
+        
+        function hideCreateEvent() {
+            document.getElementById('createFormSection').classList.remove('active');
+            document.getElementById('eventForm').reset();
+            document.getElementById('formMessage').innerHTML = '';
+        }
+        
+        async function loadEvents() {
+            const eventsList = document.getElementById('eventsList');
+            eventsList.innerHTML = '<div class="loading-text">Loading events...</div>';
+            
+            try {
+                // Fetch events from backend (which uses user's access token from session)
+                const response = await fetch('/api/calendar/events', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to load events');
+                }
+                
+                const events = await response.json();
+                
+                if (events.length === 0) {
+                    eventsList.innerHTML = '<div class="loading-text">No events found. Create your first event!</div>';
+                    return;
+                }
+                
+                eventsList.innerHTML = events.map(event => `
+                    <div class="event-item">
+                        <div class="event-title">${escapeHtml(event.title)}</div>
+                        <div class="event-time">
+                            ${formatDateTime(event.startTime)} - ${formatDateTime(event.endTime)}
+                        </div>
+                        ${event.description ? `<div class="event-description">${escapeHtml(event.description)}</div>` : ''}
+                        ${event.location ? `<div class="event-description">📍 ${escapeHtml(event.location)}</div>` : ''}
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading events:', error);
+                eventsList.innerHTML = `
+                    <div class="bx--inline-notification bx--inline-notification--error" role="alert">
+                        <div class="bx--inline-notification__details">
+                            <p class="bx--inline-notification__title">Error Loading Events</p>
+                            <p class="bx--inline-notification__subtitle">${escapeHtml(error.message)}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        async function submitEventForm(event) {
+            event.preventDefault();
+            
+            console.log('Form submitted - submitEventForm called');
+            
+            const formMessage = document.getElementById('formMessage');
+            formMessage.innerHTML = '<div class="loading-text">Creating event...</div>';
+            
+            const formData = new FormData(event.target);
+            
+            // Convert datetime-local values to epoch timestamps (milliseconds)
+            const startTimeStr = formData.get('startTime');
+            const endTimeStr = formData.get('endTime');
+            
+            const startTime = new Date(startTimeStr).getTime();
+            const endTime = new Date(endTimeStr).getTime();
+            
+            const eventData = {
+                title: formData.get('title'),
+                description: formData.get('description'),
+                location: formData.get('location'),
+                startTime: startTime,
+                endTime: endTime
+            };
+            
+            console.log('Event data:', eventData);
+            
+            try {
+                console.log('Sending POST request to /api/calendar/events');
+                
+                // Create event via backend (which uses user's access token from session)
+                const response = await fetch('/api/calendar/events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(eventData)
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to create event');
+                }
+                
+                formMessage.innerHTML = `
+                    <div class="bx--inline-notification bx--inline-notification--success" role="alert">
+                        <div class="bx--inline-notification__details">
+                            <p class="bx--inline-notification__title">Event Created Successfully</p>
+                            <p class="bx--inline-notification__subtitle">Your event has been added to the calendar.</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Reset form after 2 seconds
+                setTimeout(() => {
+                    hideCreateEvent();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error creating event:', error);
+                formMessage.innerHTML = `
+                    <div class="bx--inline-notification bx--inline-notification--error" role="alert">
+                        <div class="bx--inline-notification__details">
+                            <p class="bx--inline-notification__title">Error Creating Event</p>
+                            <p class="bx--inline-notification__subtitle">${escapeHtml(error.message)}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function logout() {
+            window.location.href = '/api/auth/logout';
+        }
+        
+        function formatDateTime(timestamp) {
+            // Convert epoch timestamp (milliseconds) to readable date
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

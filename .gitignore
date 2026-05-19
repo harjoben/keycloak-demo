@@ -1,0 +1,11 @@
+ref
+.env
+
+# IDE
+.vscode/
+.settings/
+.classpath
+.project
+
+# Maven
+target/

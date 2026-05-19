@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Calendar - Login</title>
+    
+    <!-- IBM Carbon Design System CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/carbon-components@10.58.0/css/carbon-components.min.css">
+    
+    <style>
+        body {
+            background-color: #f4f4f4;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        
+        .login-container {
+            background: #ffffff;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .login-container h1 {
+            font-size: 2.5rem;
+            font-weight: 400;
+            margin-bottom: 3rem;
+            color: #161616;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>My Calendar</h1>
+        
+        <button class="bx--btn bx--btn--primary bx--btn--lg" type="button" onclick="login()">
+            Login
+        </button>
+    </div>
+    
+    <!-- IBM Carbon Design System JavaScript -->
+    <script src="https://unpkg.com/carbon-components@10.58.0/scripts/carbon-components.min.js"></script>
+    
+    <script>
+        function login() {
+            // Redirect to the login endpoint which will initiate OIDC flow
+            window.location.href = '/api/auth/login';
+        }
+    </script>
+</body>
+</html>
