@@ -7,5 +7,7 @@ services:
     environment:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
-    command: start-dev
+    volumes:
+      - ./:/opt/keycloak/data/import:z
+    command: start-dev --import-realm
 
