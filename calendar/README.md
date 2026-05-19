@@ -1,29 +1,11 @@
 # Calendar REST Service
 
-A JAX-RS based REST service for managing calendar events with Keycloak authentication and SQLite persistence.
-
-## Features
-
-- **Create Events**: Add new calendar events with title, description, start/end times, and location
-- **List Events**: Retrieve all calendar events
-- **Get Event**: Retrieve a specific event by ID
-- **Delete Events**: Remove events from the calendar
-- **Keycloak Authentication**: All endpoints are protected with bearer token authentication
-- **SQLite Persistence**: Events are stored in a local SQLite database
-
-## Prerequisites
-
-- Java 17 or higher
-- Maven 3.6+
-- A Keycloak realm configured with a client for this service
+A REST service for managing calendar events with Keycloak authentication.
 
 
 ## Configuration
 
 Copy the `build/docker/.env.template` to `build/docker/.env` and update the properties based on the keycloak setup.
-
-
-
 
 ## Building and running the Application
 
