@@ -1,6 +1,7 @@
 package com.example.app.resources;
 
 import com.example.app.common.Constants;
+import com.example.app.util.HttpClientUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +12,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.net.URI;
@@ -112,6 +112,7 @@ public class AuthResource {
 
             // Exchange authorization code for an access and ID token
             String tokenResponse = exchangeCodeForToken(code);
+
             JsonObject tokens = new Gson().fromJson(tokenResponse, JsonObject.class);
 
             // Store tokens in session
@@ -205,29 +206,38 @@ public class AuthResource {
 
         );
 
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+        // Use mTLS HTTP client for certificate-bound token requests
+        try (CloseableHttpClient httpClient = HttpClientUtil.createMTLSHttpClient()) {
 
             HttpPost httpPost = new HttpPost(tokenUrl);
 
+            // Build the body
             String body = String.format(
 
-                    "grant_type=authorization_code&code=%s&redirect_uri=%s&client_id=%s&client_secret=%s",
+                    "grant_type=authorization_code&code=%s&redirect_uri=%s&client_id=%s",
 
                     URLEncoder.encode(code, StandardCharsets.UTF_8),
 
                     URLEncoder.encode(Constants.REDIRECT_URI, StandardCharsets.UTF_8),
 
-                    URLEncoder.encode(Constants.CLIENT_ID, StandardCharsets.UTF_8),
-
-                    URLEncoder.encode(Constants.CLIENT_SECRET, StandardCharsets.UTF_8)
+                    URLEncoder.encode(Constants.CLIENT_ID, StandardCharsets.UTF_8)
 
             );
 
+            // Decorate the request
             httpPost.setEntity(new StringEntity(body));
             httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
             try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-                return EntityUtils.toString(response.getEntity());
+                String responseBody = EntityUtils.toString(response.getEntity());
+                int statusCode = response.getStatusLine().getStatusCode();
+                
+                if (statusCode != 200) {
+                    System.err.println("Token exchange failed with status: " + statusCode);
+                    System.err.println("Response: " + responseBody);
+                }
+                
+                return responseBody;
             }
         }
     }

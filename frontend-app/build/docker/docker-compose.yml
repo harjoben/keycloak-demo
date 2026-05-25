@@ -8,4 +8,6 @@ services:
       - .env
     ports:
       - "9000:9000"
+    volumes:
+      - ./certs:/certs:z
     network_mode: host

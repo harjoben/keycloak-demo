@@ -20,6 +20,15 @@ public class Constants {
     /* The redirect URI after logout */
     public static final String LOGOUT_REDIRECT_URI = System.getenv().get("FRONTEND_LOGOUT_REDIRECT_URI");
 
+    /* The keystore to use for mTLS communication */
+    public static final String MTLS_KEYSTORE_PATH = System.getenv().get("MTLS_KEYSTORE_PATH");
+
+    /* The password for the mTLS keystore */
+    public static final String MTLS_KEYSTORE_PASSWORD = System.getenv().get("MTLS_KEYSTORE_PASSWORD");
+
+    /* The mTLS keystore type */
+    public static final String MTLS_KEYSTORE_TYPE = "PKCS12";
+
     /* Calendar page */
     public static final String CALENDAR_PAGE = "/calendar.html";
     

@@ -5,9 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 
 import jakarta.annotation.Priority;
@@ -23,6 +27,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Base64;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * Class to authorize the incoming request
@@ -147,7 +153,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
 
             );
 
-            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            try (CloseableHttpClient httpClient = createHttpClient()) {
 
                 HttpPost httpPost = new HttpPost(introspectUrl);
 
@@ -208,6 +214,52 @@ public class AuthorizationFilter implements ContainerRequestFilter {
             System.out.printf("Error introspecting token with Keycloak: %s", e);
             return null;
         }
+    }
+
+    /**
+     * Creates an HTTP client.
+     * 
+     * We are trusting all self-signed certificates now for demo purposes. A
+     * production deployment will have more secure practices in place
+     * 
+     * @return
+     *         CloseableHttpClient
+     * 
+     * @throws Exception
+     */
+    private static CloseableHttpClient createHttpClient() throws Exception {
+
+        // Build SSL context
+        SSLContext sslContext =
+
+                SSLContextBuilder
+
+                        .create()
+
+                        .loadTrustMaterial(new TrustSelfSignedStrategy())
+
+                        .build();
+
+        // Create SSL socket factory that skips hostname verification
+        SSLConnectionSocketFactory sslSocketFactory =
+
+                new SSLConnectionSocketFactory(
+
+                        sslContext,
+
+                        NoopHostnameVerifier.INSTANCE
+
+                );
+
+        // Build and return HTTP client with custom SSL configuration
+        return HttpClients
+
+                .custom()
+
+                .setSSLSocketFactory(sslSocketFactory)
+
+                .build();
+
     }
 
     /**
