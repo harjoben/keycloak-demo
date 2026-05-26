@@ -2,15 +2,15 @@
 
 ## Overview
 
-This document aims to highlight the architecture, design choices, and trade-offs related to creating a web application and a REST service that is protected by Keycloak.
+This document provides a comprehensive analysis of the architecture, design decisions, and trade-offs associated with implementing a web application and REST service secured by Keycloak.
 
-Certain objectives were targeted and met in the implementation of this demo scenario. This document will try to go into details of each of those tasks.
+The implementation addresses specific objectives within this demonstration scenario. This document details the technical approach and rationale for each requirement.
 
 ## Objectives
 
 ### 1. Allow the user to log in and obtain tokens from Keycloak.
 
-This was achieved by using OIDC Authorization Code flow, as illustrated in this sequence diagram:
+The implementation utilizes the OIDC Authorization Code flow to facilitate user authentication and token acquisition, as illustrated in the following sequence diagram:
 
 
 ```mermaid
@@ -46,35 +46,37 @@ sequenceDiagram
     Browser->>User: Display calendar details
 ```
 
-#### Configuration on Keycloak
-  - Create a new client and set the Client Authenticator to be "Client Id and Secret". 
-  - Copy the client ID and secret and inject it as the frontend-app's environment variable.
+#### Keycloak Configuration
+  - Configure a new client with Client Authenticator set to "Client ID and Secret".
+  - Extract the client ID and secret, then inject them as environment variables for the frontend application.
 
-#### Relevant Code files
+#### Relevant Code Files
   - ~/frontend-app/src/main/java/com/example/app/resources/AuthResource.java
   - ~/frontend-app/src/main/webapp/index.html
 
-#### Alternatives considered
+#### Alternative Approaches Considered
 
-The same task can be achieved using the OIDC ROPC flow as well. The downside of that approach is that the frontend application will have to collect the user's credentials, which is a major security concern. In the auth code flow, the user enters their credentials directly on the Identity provider (Keycloak).
+The OIDC Resource Owner Password Credentials (ROPC) flow represents an alternative implementation approach. However, this method introduces significant security vulnerabilities as it requires the frontend application to directly handle user credentials. The Authorization Code flow mitigates this risk by delegating credential collection to the identity provider (Keycloak).
 
-The Implicit flow is another option but that is even less secure because it includes the tokens in the URI fragment. This practice is now deprecated and highly discouraged.
+The Implicit flow was also evaluated but rejected due to inferior security characteristics, specifically the exposure of tokens in URI fragments. This approach is deprecated and strongly discouraged in current security best practices.
 
-### 2. Only authorize access if the user is part of 'my-role'
+### 2. Role-Based Access Control
 
-This task was combined with the Bonus task of "externalizing the authorization rule". For this, some permissions were configured on the Keycloak server.
+This objective encompasses the following requirements from the exercise:
+  - Authorize access only if the logged-in user has the role my-role. Users without this role should not be authorized.
+  - (Bonus) Externalize the authorization rule (role my-role) so it can be managed outside of the application (e.g., via Keycloak itself), decoupling authorization from the application layer.
 
-#### Configuration on Keycloak
-  - Create a realm role called 'my-role'
-  - Open the details of the 'frontend-app' client created in the previous task.
-  - Go to Authorization -> Resources
-  - Create a resource to protect the URI '/calendar'. (Note this URI is for the page on frontend-app and not the calendar service API)
-  - Go to Authorization -> Policies
-  - Create a policy that evaluates to true if the role 'my-role' is present.
-  - Go to Authorization -> Permissions
-  - Create a Resource-Based permission that protects the calendar resource with the my-role policy.
+#### Keycloak Configuration
+  - Define a realm role named 'my-role'.
+  - Access the 'frontend-app' client configuration established in the previous objective.
+  - Navigate to Authorization -> Resources.
+  - Define a protected resource for the URI '/calendar' (Note: This URI references the frontend-app page, not the calendar service API endpoint).
+  - Navigate to Authorization -> Policies.
+  - Configure a policy that evaluates to true when the 'my-role' role is present in the user's token.
+  - Navigate to Authorization -> Permissions.
+  - Establish a resource-based permission that applies the my-role policy to the calendar resource.
 
-#### Runtime flow
+#### Runtime Flow
 
 ```mermaid
 sequenceDiagram
@@ -106,10 +108,10 @@ sequenceDiagram
 #### Relevant Files
   - ~/frontend-app/src/main/java/com/example/app/filters/AuthorizationFilter.java
 
-#### Alternatives considered
+#### Alternative Approaches Considered
 
-  1. The access token could be unpacked on frontend-app, or introspected by Keycloak to get the roles that the user is part of. If the required role exists, allow access to the page. But this would mean that the application itself is in-charge of the authorization of the users.
-  2. Since this could be a single-page application, it may be ok to enforce the policy on the authentication step itself. So, keycloak does not issue an access token on login if the policy evaluation fails. 
+  1. Token-based role extraction: The access token could be decoded locally or introspected via Keycloak to extract user roles. Access would be granted if the required role is present. However, this approach centralizes authorization logic within the application layer, contradicting the principle of externalized authorization.
+  2. Authentication-time policy enforcement: For single-page applications, policy evaluation could occur during the authentication phase, preventing token issuance when policy evaluation fails. 
 
 
 ### 3. Protect calendar service REST APIs with Keycloak
@@ -119,7 +121,7 @@ This objective covers the following tasks from the exercise:
   - Display the data returned by the calendar service in the frontend-app.
   - (Bonus) Require that only users who have enabled and authenticated with 2-factor authentication can access the calendar service. Users with password-only authentication should receive a 403 response.
 
-The manner to achieve this is illustrated by this sequence diagram:
+The implementation approach is illustrated in the following sequence diagram:
 
 
 ```mermaid
@@ -145,22 +147,49 @@ sequenceDiagram
     Client-->>User: Display calendar data
 ```
 
-#### Keycloak configuration
-  - Open the Browser flow in the Authentication page
-  - In the "OTP Form" step, click on settings. Add "2fa" to the Authenticator Reference.
-  - Go to the frontend-app client settings. Go to Client Scopes -> frontend-app-dedicated.
-  - Add mapper by configuration.
-  - Select AMR type mapper. Make sure that "Add to access token" is turned on.
-  - Create a new client for calendar service (to be used for the introspection call).
+#### Keycloak Configuration
+  - Access the Browser flow configuration in the Authentication section.
+  - Configure the "OTP Form" step by adding "2fa" to the Authenticator Reference field.
+  - Navigate to the frontend-app client settings, then access Client Scopes -> frontend-app-dedicated.
+  - Add a mapper by configuration.
+  - Select the AMR (Authentication Methods Reference) type mapper and ensure "Add to access token" is enabled.
+  - Provision a new client for the calendar service to facilitate token introspection.
 
 #### Relevant Files
   - ~/calendar/src/main/java/com/example/calendar/filter/AuthorizationFilter.java
 
-#### Alternatives considered
+#### Alternative Approaches Considered
 
-  1. Use "acr" instead of "amr". But this would only be effective if the user was requesting for a new token to access calendar service. Since we are re-using the user's access token from the initial login to frontend-app, the approach to use "amr" seemed more efficient in completing the objective.
-  2. Include "amr" claim in the introspection response. This would avoid a step to unpack the JWT access token and extract the claim. 
-
-
+  1. ACR (Authentication Context Class Reference) claim: The "acr" claim could be utilized instead of "amr". However, this approach is only effective when requesting a new token specifically for calendar service access. Given that the implementation reuses the access token from the initial frontend-app authentication, the "amr" claim provides a more efficient solution for meeting the objective.
+  2. Introspection response enhancement: Including the "amr" claim directly in the introspection response would eliminate the need to decode the JWT access token.
 
 
+### 4. Sender-Constrained Token
+
+The objective here was to ensure the access token is sender-constrained, so the calendar service cannot reuse it to call other endpoints (e.g., Keycloak’s UserInfo endpoint).
+
+This was ensured by enabling mTLS bound access tokens for the frontend-app client on Keycloak.
+
+#### Keycloak Configuration
+  - Access the frontend-app client configuration on the Keycloak server and navigate to the Advanced tab.
+  - Enable "OAuth 2.0 Mutual TLS Certificate Bound Access Tokens" under Advanced settings.
+  - Navigate to the Credentials tab and configure the Client Authenticator to X509 Certificate.
+  - Generate a Keycloak keystore and truststore containing the frontend-app's trusted certificate. Mount these keystores to the Keycloak container.
+  
+#### Frontend Application Configuration
+  - Generate the required certificates to establish an mTLS connection with Keycloak.
+
+#### Runtime Flow
+
+  - When the frontend application initiates the Authorization Code flow, it utilizes an HTTP client configured with the client keystore.
+  - The `/token` endpoint call to Keycloak is executed using only the client_id parameter, omitting the client_secret.
+  - The resulting access token contains a `cnf` (confirmation) claim representing the thumbprint of the client certificate presented by the frontend application.
+  - When this token is presented to a resource server, the `cnf` claim is validated against the client certificate in the current mTLS connection. This cryptographic binding ensures the token is sender-constrained and cannot be utilized by unauthorized third-party applications.
+
+#### Relevant Files
+
+  - ~/frontend-app/src/main/java/com/example/app/resources/AuthResource.java
+
+#### Alternative Approaches Considered
+
+Demonstrating Proof-of-Possession (DPoP) is an alternative mechanism for implementing sender-constrained tokens. This approach was initially prioritized; however, technical challenges were encountered when requesting a RPT with a DPoP proof.
