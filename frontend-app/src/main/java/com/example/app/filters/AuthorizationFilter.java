@@ -1,6 +1,7 @@
 package com.example.app.filters;
 
 import com.example.app.common.Constants;
+import com.example.app.util.HttpClientUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.*;
@@ -11,7 +12,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
@@ -118,18 +118,21 @@ public class AuthorizationFilter implements Filter {
 
                 Constants.REALM);
 
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+        // Use mTLS HTTP client for certificate-bound token requests
+        try (CloseableHttpClient httpClient = HttpClientUtil.createMTLSHttpClient()) {
 
             HttpPost httpPost = new HttpPost(tokenUrl);
 
             // Form the request body
             String body = String.format(
 
-                    "grant_type=urn:ietf:params:oauth:grant-type:uma-ticket&audience=%s&permission=%s",
+                    "grant_type=urn:ietf:params:oauth:grant-type:uma-ticket&audience=%s&permission=%s&client_id=%s",
 
                     URLEncoder.encode(Constants.CLIENT_ID, StandardCharsets.UTF_8),
 
-                    URLEncoder.encode(resource, StandardCharsets.UTF_8)
+                    URLEncoder.encode(resource, StandardCharsets.UTF_8),
+
+                    URLEncoder.encode(Constants.CLIENT_ID, StandardCharsets.UTF_8)
 
             );
 
